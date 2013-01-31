@@ -1,0 +1,31 @@
+We probably want enhanced response cal
+
+Useful commands
+
+*RST   #reset
+*OPC?  #wait for commands to finish
+
+DISPlay:ENABle <bool> # disabling the display makes SCPI faster
+FORMat:DATA <char> # Binary (fast) or ascii (slow)
+
+INITiate:CONTinuous <bool> # off for single sweep; setting to off is asynchronous
+INITiate:IMMediate         # trigger a sweep; asynchronous
+INITiate:RESTart           # trigger a multisweep (with trace averaging), or reset average in cont sweep
+
+Smaple command should probably be INIT;*OPC?
+
+INSTrument:SELect <CAT/NA/SA/VVM/Power Meter> # mode select; asynchronous
+
+:SENSe:AVERage:mode <char> # set and query the averging mode for NA mode
+
+CALCulate:SELected:FORMat <char>  # NA mode, PHASe or UPHase for phase measurement
+
+:SENSe:SWEep:POINts <num>        #number of points in sweep
+
+CALCulate:SELected:DATA:SDATa/     # Send and read the selected trace data - unformatted
+CALCulate:SELected:DATA:FDATa     # Send and read the selected trace data - formatted
+
+CALCulate:PARameter<tr>:DEFine <char> # set measurement mode for trace <tr> see FFProgramming pg 99
+
+:BWID <num> #might be useful for more narrowband measurements.  minimum is 300, max is 30k  More bandwidth is faster
+            # actually about the same for 3 points, though

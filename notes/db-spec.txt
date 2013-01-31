@@ -1,0 +1,4 @@
+session_start_time	session_id			sample_index	phase[n]	time[n]
+INTEGER			INTEGER				INTEGER		REAL		REAL
+
+unix time		incremented from last run			
