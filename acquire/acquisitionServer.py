@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 
-from acquire.na.dummyfox import FieldFox # for debugging
 import socket
-from acquire.util.linefromsocket import linefromsocket
 import logging
 import time
 from pprint import pformat
+from acquire.radio.radio import radio
+from acquire.util.linefromsocket import linefromsocket
 
 class acquisitionServer:
 
 	# protocol versions working as of now
 	okProtVersion = {1}
 	
-	def __init__(self,host,port,fieldfoxip):
+	def __init__(self,host,port,radio):
 		self.log = logging.getLogger()
 		self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 		# allow immediate restart if the server crashes
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.sock.bind((host,port))
 		self.log.info("Trying to connect to network analyzer...")
-		self.netAnalyzer = FieldFox(fieldfoxip)
+		self.radio = radio
 		self.log.info("Successfully connected to network analyzer.")
 		# TODO: acquire database here
 
@@ -69,9 +69,9 @@ class acquisitionServer:
 			conn.sendall("NOPE\n".encode())
 			self.log.error("Malformed v1 message {}".format(pformat(msg)) )
 
-	## Collect and log a sample from the network analyzer
+	## Collect and log a sample from the radio
 	def sampleVer1(self, ant):
-		result = self.netAnalyzer.sample()
+		result = self.radio.sample()
 		self.log.debug("Got {} for antenna {}".format(result,ant))
 		#TODO: stuff in database
 		tstamp = time.time()

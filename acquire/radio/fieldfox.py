@@ -1,6 +1,7 @@
 import telnetlib
+from acquire.radio.radio import radio
 
-class FieldFox:
+class FieldFox(radio):
 
 	"""A class to communicate with the Agilent FieldFox network analyzer."""
 
