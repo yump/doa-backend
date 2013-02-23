@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import fieldfox
+from acquire.na.dummyfox import FieldFox # for debugging
 import socket
+from acquire.util.linefromsocket import linefromsocket
 import logging
 import time
 from pprint import pformat
@@ -18,7 +19,7 @@ class acquisitionServer:
 		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		self.sock.bind((host,port))
 		self.log.info("Trying to connect to network analyzer...")
-		self.netAnalyzer = fieldfox.FieldFox(fieldfoxip)
+		self.netAnalyzer = FieldFox(fieldfoxip)
 		self.log.info("Successfully connected to network analyzer.")
 		# TODO: acquire database here
 
@@ -35,7 +36,7 @@ class acquisitionServer:
 
 	## Generic client handler (dispatches by version)
 	def handleClient(self, conn, addr):
-		hello = conn.recv(1024).decode().split()
+		hello = linefromsocket(conn).decode().split()
 		try:
 			assert hello[0] == "HELO"
 			protVersion = int(hello[1])
@@ -55,7 +56,7 @@ class acquisitionServer:
 		              "protocol version 1".format(addr))
 		try:
 			while True:
-				msg = conn.recv(1024).decode().strip()
+				msg = linefromsocket(conn).decode().strip()
 				if msg == "GBYE":
 					conn.sendall("GBYE\n".encode())
 					self.log.info("Client disconnected")
@@ -79,11 +80,3 @@ class acquisitionServer:
 		self.sock.close()
 			
 
-if __name__ == "__main__":
-	import config
-	logging.basicConfig(filename=config.logfile,level=logging.DEBUG)
-	port = config.serverport
-	host = config.listenhost
-	ffhost = config.fieldfoxhost
-	server = acquisitionServer(host,port,ffhost)
-	server.serve()
