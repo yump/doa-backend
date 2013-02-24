@@ -1,7 +1,7 @@
-from acquire.radio.radio import radio
+from ..QAMRadio import QAMRadio
 import time
 
-class dummy(radio):
+class Dummy(QAMRadio):
 
 	"""A class to pretend to be an Agilent FieldFox network analyzer."""
 

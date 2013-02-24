@@ -1,4 +1,4 @@
-class radio:
+class QAMRadio:
 	"""Superclass for QAM radios."""
 
 	def __init__(self, host=None, port=None):

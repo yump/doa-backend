@@ -4,10 +4,13 @@ import socket
 import logging
 import time
 from pprint import pformat
-from acquire.radio.radio import radio
+from acquire.QAMRadio import QAMRadio
 from acquire.util.linefromsocket import linefromsocket
 
 class acquisitionServer:
+
+	"""A service to coordinate with a controller to grab samples from a radio.
+	"""
 
 	# protocol versions working as of now
 	okProtVersion = {1}
@@ -23,8 +26,9 @@ class acquisitionServer:
 		self.log.info("Successfully connected to network analyzer.")
 		# TODO: acquire database here
 
-	## Begin serving -- DOES NOT RETURN
 	def serve(self):
+		"""Begin serving -- DOES NOT RETURN
+		"""
 		self.log.info("Server starting")
 		self.sock.listen(0)
 		while True:
@@ -34,8 +38,9 @@ class acquisitionServer:
 			conn.close() #closed here and only here
 		return
 
-	## Generic client handler (dispatches by version)
 	def handleClient(self, conn, addr):
+		"""Generic client handler (dispatches by version)
+		"""
 		hello = linefromsocket(conn).decode().split()
 		try:
 			assert hello[0] == "HELO"
@@ -50,8 +55,9 @@ class acquisitionServer:
 			if protVersion is 1:
 				self.handleClientVer1(conn,addr)
 
-	## Protocol Version 1 client handler
 	def handleClientVer1(self, conn, addr):
+		"""Protocol Version 1 client handler
+		"""
 		self.log.info("{} connected with "
 		              "protocol version 1".format(addr))
 		try:
@@ -69,8 +75,9 @@ class acquisitionServer:
 			conn.sendall("NOPE\n".encode())
 			self.log.error("Malformed v1 message {}".format(pformat(msg)) )
 
-	## Collect and log a sample from the radio
 	def sampleVer1(self, ant):
+		"""Collect and log a sample from the radio
+		"""
 		result = self.radio.sample()
 		self.log.debug("Got {} for antenna {}".format(result,ant))
 		#TODO: stuff in database
