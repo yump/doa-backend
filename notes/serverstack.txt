@@ -1,0 +1,26 @@
+acquisitionServer communicates with the network analyzer, with the
+server, and with Ryan's arduino cluster.
+
+## Radio interface
+
+class radio:
+	sample()
+		should return samples?  Or store them inside?  What if the radio
+		has internal memory of some kind?  Then it would certainly be
+		best to support some kind of remote buffering.
+	trigger()
+	getsome(max)
+	getall()
+		That could work.  The generic radio class could provide versions
+		that would just use sample() and an internal buffer for radios
+		that don't have useful internal memory.
+
+## Data Hierarchy
+
+session
+	arraysamples = list()
+		arraysample[0] - dict mapping antenna_ids to samples
+			{0: Sample, 2:, Sample, 4: Sample}
+				Sample = namedtuple("Sample", ["timestamp","i","q"])
+		arraysample[1]...
+			...
