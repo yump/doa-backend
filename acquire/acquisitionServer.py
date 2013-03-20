@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import socket
 import logging
 import time
@@ -43,9 +41,11 @@ class acquisitionServer:
 		"""
 		hello = linefromsocket(conn).decode().split()
 		try:
-			assert hello[0] == "HELO"
+			if hello[0] != "HELO":
+				raise ValueError("HELO was not 'HELO'")
 			protVersion = int(hello[1])
-			assert protVersion in self.okProtVersion
+			if protVersion not in self.okProtVersion:
+				raise ValueError("Bad protocol version")
 		except Exception as err:
 			conn.sendall("NOPE\n".encode())
 			self.log.exception("Bad connection attempt from {} with "

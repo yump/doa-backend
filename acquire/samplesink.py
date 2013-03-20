@@ -1,3 +1,11 @@
+import time
+import logging
+
+"""The samplesink module provides a generic interface for backends to store
+I/Q samples from an antenna array. New storage backends should subclass
+samplesink.samplesink, and override _init() and _stow() as necessary.
+"""
+
 class samplesink:
 	"""A superclass for backends to store samples.  Files, databases
 	http APIs, line printers, N-redundant carrier pidgeons, etc.
@@ -7,30 +15,42 @@ class samplesink:
 	traversal.
 	"""
 
-	self.seen = set()
-	self.trav_idx = 0
+	allowed_ant = set()
+	seen = set()
+	trav_idx = 0
+	session_id = 0
+	num_antennas = 0
+	log = logging.getLogger(__name__)
 
 	def __init__(self):
+		raise NotImplementedError
+	
+	def close(self):
 		raise NotImplementedError
 
 	def put(self,ant,sample)
 		"""Accept a sample for storage."""
-		if ant in self.seen:
+		if ant in self.seen:       #detect traverse boundaries
+			if self.trav_idx == 0: #learn allowed antenna IDs
+				self.allowed_ant = frozenset(self.seen)
+				self.num_antennas = len(self.allowed_ant)
+			self._endtraverse()    #hook for backends
 			self.trav_idx += 1
-			self.seen.clear()
+			self.seen.clear()      #reset to begin new traverse
 		self.seen.add(ant)
-		self._stow(self.trav_idx, ant, sample)
+		if self.trav_idx != 0 and ant not in self.allowed_ant:
+			raise ValueError("Bad antenna ID, not in initial pattern.")
+		#let the backend do whatever
+		self._stow(self,session_id, self.trav_idx, ant, time.time(), sample)
 
-	def _stow(self, sample_id, ant_id, sample):
-		"""Convey the data to the backend.  sample_id identifies a traversal,
-		and ant_id identifies an antenna and is unique within a traversal.
+	def _stow(self, session_id, sample_id, ant_id, timestamp, sample):
+		"""Convey the data to the backend.  session_id identifies a set of
+		consecutive samples from the same antenna array, sample_id identifies a
+		traversal, and ant_id identifies an antenna and is unique within a
+		traversal.  
 		"""
 		raise NotImplementedError
 
-class pyfile(samplesink):
-	"""Writes the samples to a named file in python repr() format."""
-	def __init__(self,filename,mode='w'):
-		super().__init
-		self.file = open(filename,mode)
-	
-	def put(self,sample)
+	def _endtraverse(self):
+		pass
+
