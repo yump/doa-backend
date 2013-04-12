@@ -21,63 +21,63 @@ from ..QAMRadio import QAMRadio
 
 class FieldFox(QAMRadio):
 
-	"""A class to communicate with the Agilent FieldFox network analyzer."""
+    """A class to communicate with the Agilent FieldFox network analyzer."""
 
-	def __init__(self, host, port=5025):
-		self.conn = telnetlib.Telnet(host, port)
-		self.scpi("*RST")                  # reset
-		self.barrier()
-		self.scpi("CALC:PAR1:DEF S21")     # measure S21
-		self.scpi("INIT:CONT 0")           # single sweep mode
-		self.scpi("CALC:SEL:FORM uphase")  # unwrapped phase
-		self.scpi("SENS:SWE:POIN 3")       # get 3 points
-		self.scpi("SENS:FREQ:STAR 2.45e9") # we 2.45 GHz now
-		self.scpi("SENS:FREQ:STOP 2.45e9")
-		self.scpi(":BWID 3e2")             # minimum IF bandwidth
-		self.scpi("DISP:ENAB 0")           # Shaves ~100ms
-		self.sync()
+    def __init__(self, host, port=5025):
+        self.conn = telnetlib.Telnet(host, port)
+        self.scpi("*RST")                  # reset
+        self.barrier()
+        self.scpi("CALC:PAR1:DEF S21")     # measure S21
+        self.scpi("INIT:CONT 0")           # single sweep mode
+        self.scpi("CALC:SEL:FORM uphase")  # unwrapped phase
+        self.scpi("SENS:SWE:POIN 3")       # get 3 points
+        self.scpi("SENS:FREQ:STAR 2.45e9") # we 2.45 GHz now
+        self.scpi("SENS:FREQ:STOP 2.45e9")
+        self.scpi(":BWID 3e2")             # minimum IF bandwidth
+        self.scpi("DISP:ENAB 0")           # Shaves ~100ms
+        self.sync()
 
-	def __del__(self):
-		self.conn.close()
+    def __del__(self):
+        self.conn.close()
 
-	def sample(self):
-		"""
-		Collect an I,Q pair as a tuple of strings.
-		Using strings for storage and transfer allows the final user of
-		the data to convert it to its native floating point format.
-		"""
-		self.scpi("INIT")
-		self.barrier()
-		self.scpi("CALC:DATA:SDAT?")     # get I/Q sample
-		#self.scpi("CALC:DATA:FDAT?")    # get unwrapped phase sample
-		answer =  self.conn.read_until(b'\n').decode('ascii')
-		parsed = answer.strip().split(",")
-		return tuple(parsed[0:2])        # First I,Q pair
+    def sample(self):
+        """
+        Collect an I,Q pair as a tuple of strings.
+        Using strings for storage and transfer allows the final user of
+        the data to convert it to its native floating point format.
+        """
+        self.scpi("INIT")
+        self.barrier()
+        self.scpi("CALC:DATA:SDAT?")     # get I/Q sample
+        #self.scpi("CALC:DATA:FDAT?")    # get unwrapped phase sample
+        answer =  self.conn.read_until(b'\n').decode('ascii')
+        parsed = answer.strip().split(",")
+        return tuple(parsed[0:2])        # First I,Q pair
 
-	def sync(self):        
-		"""
-		Wait for completion of pending commands.
-		"""
-		self.scpi("*OPC?")
-		self.conn.read_until(b'\n')
+    def sync(self):        
+        """
+        Wait for completion of pending commands.
+        """
+        self.scpi("*OPC?")
+        self.conn.read_until(b'\n')
 
-	def barrier(self):
-		"""
-		Force previous commands to finish before subsequent commands..
-		"""
-		self.scpi("*WAI")
+    def barrier(self):
+        """
+        Force previous commands to finish before subsequent commands..
+        """
+        self.scpi("*WAI")
 
-	def scpi(self, command):
-		"""
-		Send a string to the SCPI instrument.
-		Handles encoding and termination.
-		"""
-		self.conn.write(command.encode('ascii') + b'\n')
+    def scpi(self, command):
+        """
+        Send a string to the SCPI instrument.
+        Handles encoding and termination.
+        """
+        self.conn.write(command.encode('ascii') + b'\n')
 
-	def command(self, command):
-		"""
-		Send an SCPI command and return the result. For human interactive use.
-		"""
-		self.scpi(command)
-		return conn.read_until(b'\n').decode('ascii')
+    def command(self, command):
+        """
+        Send an SCPI command and return the result. For human interactive use.
+        """
+        self.scpi(command)
+        return conn.read_until(b'\n').decode('ascii')
 
