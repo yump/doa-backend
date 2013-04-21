@@ -25,3 +25,6 @@ class QAMRadio:
     def sample(self):
         raise NotImplementedError
 
+    def close(self):
+        pass # may not be necessary for some radios
+

@@ -31,7 +31,7 @@ class acquisitionServer:
     # protocol versions working as of now
     okProtVersion = {1}
     
-    def __init__(self,host,port,radio):
+    def __init__(self,host,port,radio,samplesink):
         self.log = logging.getLogger()
         self.sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         # allow immediate restart if the server crashes
@@ -39,6 +39,7 @@ class acquisitionServer:
         self.sock.bind((host,port))
         self.log.info("Trying to connect to network analyzer...")
         self.radio = radio
+        self.samplesink = samplesink
         self.log.info("Successfully connected to network analyzer.")
         # TODO: acquire database here
 
@@ -83,6 +84,7 @@ class acquisitionServer:
                 msg = linefromsocket(conn).decode().strip()
                 if msg == "GBYE":
                     conn.sendall("GBYE\n".encode())
+                    self.samplesink.reset()
                     self.log.info("Client disconnected")
                     break
                 else:
@@ -92,16 +94,19 @@ class acquisitionServer:
         except ValueError:
             conn.sendall("NOPE\n".encode())
             self.log.error("Malformed v1 message {}".format(pformat(msg)) )
+            raise
 
     def sampleVer1(self, ant):
         """Collect and log a sample from the radio
         """
         result = self.radio.sample()
         self.log.debug("Got {} for antenna {}".format(result,ant))
-        #TODO: stuff in database
-        tstamp = time.time()
+        # Convey to Samplesink.
+        self.samplesink.put(ant,result)
 
-    def __del__(self):
+    def close(self):
         self.sock.close()
+        self.radio.close()
+        self.samplesink.close()
             
 

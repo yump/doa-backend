@@ -18,7 +18,9 @@
 
 dbfile="./sample-database.sqlite"
 serverport = 8472
-fieldfoxhost = "192.168.0.100"
+#fieldfoxhost = "192.168.0.101"
+fieldfoxhost = "freyjr.ece.tamu.edu"
 listenhost = "0.0.0.0"
+sampleurl = "http://localhost:8080/newsample"
 logfile = "acquisitionServer.log"
 
