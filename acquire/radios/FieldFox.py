@@ -42,9 +42,7 @@ class FieldFox(QAMRadio):
 
     def sample(self):
         """
-        Collect an I,Q pair as a tuple of strings.
-        Using strings for storage and transfer allows the final user of
-        the data to convert it to its native floating point format.
+        Collect an I,Q pair as a complex (double precision).
         """
         self.scpi("INIT")
         self.barrier()
@@ -52,7 +50,7 @@ class FieldFox(QAMRadio):
         #self.scpi("CALC:DATA:FDAT?")    # get unwrapped phase sample
         answer =  self.conn.read_until(b'\n').decode('ascii')
         parsed = answer.strip().split(",")
-        return tuple(parsed[0:2])        # First I,Q pair
+        return [ float(x) for x in parsed[0:2] ]     # First I,Q pair
 
     def sync(self):        
         """
@@ -81,3 +79,5 @@ class FieldFox(QAMRadio):
         self.scpi(command)
         return conn.read_until(b'\n').decode('ascii')
 
+    def close(self):
+        self.conn.close()

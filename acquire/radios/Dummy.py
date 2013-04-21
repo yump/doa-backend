@@ -28,6 +28,6 @@ class Dummy(QAMRadio):
 
     def sample(self):
         time.sleep(0.100)
-        return ("4","2")
+        return (4,2)
 
 
