@@ -26,8 +26,11 @@ from acquire import samplesink
 logging.basicConfig(filename=acquire.config.logfile,level=logging.DEBUG)
 port = acquire.config.serverport
 host = acquire.config.listenhost
-ffhost = acquire.config.fieldfoxhost
-radio = FieldFox(ffhost)
+radio = FieldFox(
+    acquire.config.freq, 
+    acquire.config.bw, 
+    acquire.conf.fieldfoxhost
+)
 sink = samplesink.JSONSender(acquire.config.sampleurl)
 server = acquisitionServer(host,port,radio,sink)
 try:

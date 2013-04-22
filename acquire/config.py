@@ -23,4 +23,6 @@ fieldfoxhost = "freyjr.ece.tamu.edu"
 listenhost = "0.0.0.0"
 sampleurl = "http://localhost:8080/newsample"
 logfile = "acquisitionServer.log"
+freq = 2.477e9
+bw = 300
 
