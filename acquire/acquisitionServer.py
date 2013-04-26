@@ -107,6 +107,5 @@ class acquisitionServer:
     def close(self):
         self.sock.close()
         self.radio.close()
-        self.samplesink.close()
             
 

@@ -24,15 +24,32 @@ from acquire.radios.FieldFox import FieldFox
 from acquire import samplesink
 
 logging.basicConfig(filename=acquire.config.logfile,level=logging.DEBUG)
-port = acquire.config.serverport
-host = acquire.config.listenhost
-radio = FieldFox(
-    acquire.config.freq, 
-    acquire.config.bw, 
-    acquire.conf.fieldfoxhost
+
+if acquire.config.dummy:
+    radio = Dummy()
+else:
+    radio = FieldFox(
+        host = acquire.config.fieldfoxhost,
+        freq = acquire.config.freq, 
+        span = 0,
+        ifbw = acquire.config.ifbw, 
+        npoints = acquire.config.npoints,
+        meas_type = "S21",
+        meas_format = "phase"
+    )
+
+sink = samplesink.JSONSender(
+    dataformat = acquire.config.dataformat,
+    freq = acquire.config.freq,
+    url = acquire.config.sampleurl
 )
-sink = samplesink.JSONSender(acquire.config.sampleurl)
-server = acquisitionServer(host,port,radio,sink)
+
+server = acquisitionServer(
+    acquire.config.listenhost,
+    acquire.config.serverport,
+    radio,
+    sink
+)
 try:
     server.serve()
 except (KeyboardInterrupt):

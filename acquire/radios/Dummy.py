@@ -23,11 +23,11 @@ class Dummy(QAMRadio):
 
     """A class to pretend to be an Agilent FieldFox network analyzer."""
 
-    def __init__(self, freq, bw, host=None, port=None):
+    def __init__(self,*args,**kwargs):
         pass
 
     def sample(self):
         time.sleep(0.100)
-        return (4,2)
+        return ([1,2,3,4],[2,4,6,8])
 
 

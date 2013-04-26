@@ -19,6 +19,8 @@
 import time
 import logging
 import json
+import uuid
+from acquire import encoding
 from urllib import request
 
 """The samplesink module provides a generic interface for backends to store
@@ -36,14 +38,31 @@ class Samplesink:
     traversal.
     """
 
-    def __init__(self):
+    def __init__(self,dataformat,freq):
+        """
+        Initialize a Samplesink with a unique session indentifier.
+
+        Parameters
+        ----------
+
+        dataformat : string
+            Exactly what the samples mean.  "phase", "raw", and "uphase" are
+            some examples.  For interoperability, it is best to use the same
+            argument used for setting up the radio.
+        
+        freq : float
+            The center frequency at which the measurement was taken.
+        """
+        self.dataformat = dataformat
+        self.freq = freq
+        self.uuid = uuid.uuid4().hex
         self.seen = set()
         self.trav_idx = 0
         self.polysample = {}
         log = logging.getLogger(__name__)
     
     def close(self):
-        self.reset()
+        self._stow(time.time(), self.polysample)
 
     def put(self,ant,sample):
         """
@@ -77,14 +96,15 @@ class Samplesink:
         self.seen.clear()      #reset to begin new traverse
         self.polysample = {}
         self.trav_idx = 0
+        self.uuid = uuid.uuid4().hex # get a new UUID for the next set
 
 
 class ReprPrinter(Samplesink):
     """
     Samplesink that prints the data on stdout.
     """
-    def __init__(self,fn):
-        super().__init__()
+    def __init__(self,dataformat,freq,fn):
+        super().__init__(dataformat,freq)
         self.fn = fn
 
     def _stow(self, timestamp, sampledict):
@@ -96,14 +116,22 @@ class JSONSender(Samplesink):
     """
     Samplesink that sends the samples to a remote machine with JSON encoding
     """
-    def __init__(self,url):
-        super().__init__()
+    def __init__(self,dataformat,freq,url):
+        super().__init__(dataformat,freq)
         self.url = url
 
     def _stow(self, timestamp, sampledict):
-        jsondata = json.dumps([timestamp,sampledict]).encode('UTF-8')
-        headers = {}
-        headers['Content-Type'] = 'application/json'
+        container = encoding.SampleObject(
+            uuid = self.uuid,
+            dataformat = self.dataformat,
+            sequence = self.trav_idx,
+            timestamp = timestamp,
+            real = { id:real for id,(real,imag) in sampledict.items() },
+            imag = { id:imag for id,(real,imag) in sampledict.items() }
+        )
+
+        jsondata = json.dumps(container.__dict__).encode('UTF-8')
+        headers = {'Content-Type' : 'application/json'}
         req = request.Request(self.url, jsondata, headers)
         request.urlopen(req)
 
