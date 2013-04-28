@@ -24,7 +24,7 @@ sampleurl = "http://localhost:8080/newsample"
 logfile = "acquisitionServer.log"
 freq = 2.477e9
 ifbw = 300
-npoints = 3
+npoints = 21
 dataformat = "phase"
 dummy = False
 

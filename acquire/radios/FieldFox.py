@@ -59,16 +59,21 @@ class FieldFox(QAMRadio):
             One of "phase", "uphase", "VSWR", "gdelay", "raw", etc. See Agilent
             FieldFox Programming Guide.
         """
+        # Validate npoints argument within capabilities of FieldFox
         if npoints > 1001 or npoints < 3:
             raise ValueError("npoints must be between 3 and 1001")
         self.log = logging.getLogger(__name__)
-        self.conn = telnetlib.Telnet(host, port)
 
+        # Connect
+        self.log.info("Connecting to FieldFox on {}:{}...".format(host,port))
+        self.conn = telnetlib.Telnet(host, port)
+        
         topfreq = freq + span/2
         botfreq = freq - span/2
-
         self.meas_format = meas_format
 
+        # Configure FieldFox with measurement parameters
+        self.log.info("Setting up FieldFox...")
         self.scpi("CALC:PAR1:DEF {}".format(meas_type))
         self.scpi("INIT:CONT 0")                        # single sweep mode
         if meas_format != "raw":
@@ -79,6 +84,7 @@ class FieldFox(QAMRadio):
         self.scpi(":BWID {}".format(ifbw))              # minimum IF bandwidth
         self.scpi("DISP:ENAB 0")                        # Shaves ~100ms
         self.sync()
+        self.log.info("FieldFox ready.")
 
     def __del__(self):
         self.conn.close()
@@ -95,10 +101,13 @@ class FieldFox(QAMRadio):
             Vectors of real and imaginary parts. If a real measurement is
             taken, [imag] is a vector of zeros.    
         """
-        self.scpi("INIT")                   # Trigger a sweep.
+        # Trigger a sweep.
+        self.scpi("INIT")
         self.barrier()
+
         if self.meas_format == "raw":
-            self.scpi("CALC:DATA:SDAT?")    # Get raw complex samples.
+            # Get raw complex samples.
+            self.scpi("CALC:DATA:SDAT?")
             answer =  self.conn.read_until(b'\n').decode('ascii')
             parsed = answer.strip().split(",")
             # even indicies are real part, odd are imaginary part
@@ -106,7 +115,8 @@ class FieldFox(QAMRadio):
             imag = [ float(parsed[i]) for i in range(1,len(parsed),2) ]
             return (real,imag)
         else:
-            self.scpi("CALC:DATA:FDAT?")    # Get formatted samples.
+            # Get formatted samples.
+            self.scpi("CALC:DATA:FDAT?")
             answer =  self.conn.read_until(b'\n').decode('ascii')
             parsed = answer.strip().split(",")
             return ( [float(x) for x in parsed], [0.0]*len(parsed) )
@@ -120,7 +130,7 @@ class FieldFox(QAMRadio):
 
     def barrier(self):
         """
-        Force previous commands to finish before subsequent commands..
+        Force previous commands to finish before subsequent commands.
         """
         self.scpi("*WAI")
 

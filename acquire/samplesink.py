@@ -59,7 +59,7 @@ class Samplesink:
         self.seen = set()
         self.trav_idx = 0
         self.polysample = {}
-        log = logging.getLogger(__name__)
+        self.log = logging.getLogger(__name__)
     
     def close(self):
         self._stow(time.time(), self.polysample)
